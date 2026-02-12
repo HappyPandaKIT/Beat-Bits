@@ -56,6 +56,12 @@
   font-size: 0.6em;
   margin-top: 5px;
   opacity: 0.7;
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
 }
 
 .drum-machine-instructions {
