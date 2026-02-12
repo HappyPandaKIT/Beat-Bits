@@ -55,11 +55,18 @@
 
 .visualizer-dropdown-item:hover {
   background-color: #333;
+  color: #fff;
 }
 
-.visualizer-dropdown-item.is-selected {
+.visualizer-dropdown-menu .visualizer-dropdown-item.is-selected {
   background-color: #212529;
-  color: #92cc41;
+  color: #92cc41 !important;
+  font-weight: bold;
+}
+
+.visualizer-dropdown-menu .visualizer-dropdown-item.is-selected:hover {
+  background-color: #333;
+  color: #92cc41 !important;
 }
 
 .visualizer-loading {

@@ -159,22 +159,25 @@ const TRACKS = [
   'Perc'
 ];
 
-const STEPS = 16;
+const STEP_OPTIONS = [16, 32, 64];
+const DEFAULT_STEPS = 16;
 
 const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolume = 0.8, onVolumeChange }, ref) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm, setBpm] = useState(120);
   const [currentStep, setCurrentStep] = useState(0);
+  const [steps, setSteps] = useState(DEFAULT_STEPS);
   const [pattern, setPattern] = useState(() => {
     // Initialize empty pattern
     const initialPattern = {};
     TRACKS.forEach(track => {
-      initialPattern[track] = Array(STEPS).fill(false);
+      initialPattern[track] = Array(DEFAULT_STEPS).fill(false);
     });
     return initialPattern;
   });
   const [savedPatterns, setSavedPatterns] = useState([]);
   const [patternName, setPatternName] = useState('');
+  const [stepDropdownOpen, setStepDropdownOpen] = useState(false);
   const volume = sharedVolume; // Use shared volume from parent
 
   const intervalRef = useRef(null);
@@ -191,6 +194,22 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
     }
   }, [audioCtx]);
 
+  // Handle step count change
+  const changeStepCount = useCallback((newSteps) => {
+    setSteps(newSteps);
+    setCurrentStep(0);
+    setIsPlaying(false);
+    nextStepTimeRef.current = 0;
+    setPattern(prev => {
+      const resized = {};
+      TRACKS.forEach(track => {
+        const old = prev[track] || [];
+        resized[track] = Array(newSteps).fill(false).map((_, i) => i < old.length ? old[i] : false);
+      });
+      return resized;
+    });
+  }, []);
+
   // Calculate step interval based on BPM (16th notes)
   const stepInterval = (60 / bpm / 4) * 1000; // in milliseconds
 
@@ -206,11 +225,11 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
   const clearPattern = useCallback(() => {
     const emptyPattern = {};
     TRACKS.forEach(track => {
-      emptyPattern[track] = Array(STEPS).fill(false);
+      emptyPattern[track] = Array(steps).fill(false);
     });
     setPattern(emptyPattern);
     setCurrentStep(0);
-  }, []);
+  }, [steps]);
 
   // Play current step
   const playCurrentStep = useCallback(() => {
@@ -238,7 +257,7 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
       // If we're past the next step time, advance
       if (now >= nextStepTimeRef.current) {
         playCurrentStep();
-        setCurrentStep(prev => (prev + 1) % STEPS);
+        setCurrentStep(prev => (prev + 1) % steps);
         nextStepTimeRef.current = now + stepInterval;
       }
 
@@ -288,6 +307,7 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
       id: Date.now(),
       name: patternName,
       bpm: bpm,
+      steps: steps,
       data: { ...pattern }
     };
 
@@ -302,6 +322,8 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
 
   // Load pattern
   const loadPattern = useCallback((savedPattern) => {
+    const loadedSteps = savedPattern.steps || 16;
+    setSteps(loadedSteps);
     setPattern(savedPattern.data);
     setBpm(savedPattern.bpm);
     setCurrentStep(0);
@@ -329,10 +351,10 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
   const generateRandomPattern = useCallback(() => {
     const newPattern = {};
     TRACKS.forEach(track => {
-      newPattern[track] = Array(STEPS).fill(false).map(() => Math.random() > 0.7);
+      newPattern[track] = Array(steps).fill(false).map(() => Math.random() > 0.7);
     });
     setPattern(newPattern);
-  }, []);
+  }, [steps]);
 
   return (
     <BeatmakerContainer>
@@ -341,7 +363,7 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
       </div>
       
       <Screen>
-        {isPlaying ? `PLAYING - STEP ${currentStep + 1}/${STEPS}` : (currentStep > 0 ? `PAUSED - STEP ${currentStep + 1}/${STEPS}` : 'BEATMAKER - READY')}
+        {isPlaying ? `PLAYING - STEP ${currentStep + 1}/${steps}` : (currentStep > 0 ? `PAUSED - STEP ${currentStep + 1}/${steps}` : 'BEATMAKER - READY')}
       </Screen>
 
       <div className="drum-machine-volume-control">
@@ -395,6 +417,36 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
           <span className="btn-icon"><CasinoIcon /></span>
         </button>
 
+        <div className="step-dropdown-container">
+          <label style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', marginRight: '8px' }}>Steps:</label>
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <button
+              type="button"
+              className="step-dropdown-button"
+              onClick={() => setStepDropdownOpen(!stepDropdownOpen)}
+            >
+              {steps} ▼
+            </button>
+            {stepDropdownOpen && (
+              <div className="step-dropdown-menu">
+                {STEP_OPTIONS.map(opt => (
+                  <button
+                    key={opt}
+                    type="button"
+                    className={`step-dropdown-item ${opt === steps ? 'is-selected' : ''}`}
+                    onClick={() => {
+                      changeStepCount(opt);
+                      setStepDropdownOpen(false);
+                    }}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          )}
+          </div>
+        </div>
+
         <BPMControl>
           <label style={{ fontSize: '12px', fontWeight: 'bold' }}>BPM:</label>
           <input
@@ -410,10 +462,10 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
       </TransportControls>
 
       <SequencerGrid>
-        <GridTable>
+        <GridTable style={{ gridTemplateColumns: `100px repeat(${steps}, 1fr)`, minWidth: `${100 + steps * 34}px` }}>
           {/* Header - Step numbers */}
           <TrackLabel style={{ backgroundColor: '#212529', color: '#92cc41' }}>TRACK</TrackLabel>
-          {Array.from({ length: STEPS }, (_, i) => (
+          {Array.from({ length: steps }, (_, i) => (
             <TrackLabel 
               key={`step-${i}`}
               style={{ 
@@ -430,10 +482,10 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
           {TRACKS.map(track => (
             <React.Fragment key={track}>
               <TrackLabel>{track}</TrackLabel>
-              {Array.from({ length: STEPS }, (_, step) => (
+              {Array.from({ length: steps }, (_, step) => (
                 <StepCell
                   key={`${track}-${step}`}
-                  active={pattern[track][step]}
+                  active={pattern[track]?.[step] || false}
                   highlighted={step % 4 === 0}
                   className={step === currentStep && currentStep > 0 ? 'playing' : ''}
                   onClick={() => toggleStep(track, step)}
@@ -503,7 +555,7 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
                   }}
                 >
                   <span style={{ flex: 1, fontSize: '12px', fontWeight: 'bold', color: colorScheme.text }}>
-                    {saved.name} ({saved.bpm} BPM)
+                    {saved.name} ({saved.bpm} BPM • {saved.steps || 16} Steps)
                   </span>
                   <button 
                     className="nes-btn is-primary"
