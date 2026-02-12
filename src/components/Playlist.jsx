@@ -25,7 +25,7 @@ const Playlist = ({ beats, uploadedTracks, currentBeatId, isPlaying, onPlayTrack
         <input 
           id="file-upload"
           type="file" 
-          accept="audio/mpeg,.mp3"
+          accept="audio/*"
           multiple 
           onChange={onFileUpload}
           style={{ display: 'none' }}
