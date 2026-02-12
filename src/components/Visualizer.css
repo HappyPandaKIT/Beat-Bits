@@ -1,9 +1,16 @@
 .visualizer-container {
   width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .visualizer-canvas {
   width: 100%;
+  max-width: 800px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  aspect-ratio: 2 / 1;
 }
 
 .visualizer-canvas-square {
@@ -11,4 +18,15 @@
   max-width: 400px;
   margin: 0 auto;
   display: block;
+  aspect-ratio: 1 / 1;
+}
+
+@media (max-width: 768px) {
+  .visualizer-canvas {
+    max-width: 100%;
+  }
+  
+  .visualizer-canvas-square {
+    max-width: 100%;
+  }
 }

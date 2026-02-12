@@ -63,3 +63,26 @@
   font-size: clamp(8px, 1.5vw, 10px);
   margin-top: 10px;
 }
+
+/* Mobile improvements */
+@media (max-width: 768px) {
+  .drum-machine-volume-control {
+    margin-bottom: 15px;
+  }
+  
+  .drum-pad {
+    min-height: 60px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .drum-pad {
+    min-height: 64px; /* Larger touch targets */
+    touch-action: manipulation;
+  }
+  
+  .drum-machine-volume-slider {
+    height: 30px; /* Easier to grab on touch */
+  }
+}

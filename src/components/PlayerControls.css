@@ -71,3 +71,56 @@
   font-weight: bold;
   letter-spacing: 1px;
 }
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .player-controls-container {
+    padding: 0 0.5rem;
+  }
+  
+  .player-controls-main {
+    gap: 6px;
+  }
+  
+  .player-controls-button {
+    min-width: 36px;
+    padding: 0.25em 0.5em;
+  }
+  
+  .player-controls-progress {
+    height: 10px; /* Slightly taller for easier touch */
+  }
+  
+  .player-controls-time {
+    margin-left: 0;
+    font-size: 10px;
+  }
+  
+  .player-controls-volume {
+    margin-left: 0;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .player-controls-volume-slider {
+    width: 100%;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .player-controls-button {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+  
+  .player-controls-progress {
+    height: 20px; /* Easier to tap */
+    touch-action: manipulation;
+  }
+  
+  .player-controls-volume-slider {
+    height: 20px; /* Easier to drag */
+  }
+}
