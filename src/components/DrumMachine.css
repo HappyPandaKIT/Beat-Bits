@@ -60,6 +60,9 @@
   text-align: center;
   width: 100%;
   line-height: 1.1;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .drum-machine-instructions {
