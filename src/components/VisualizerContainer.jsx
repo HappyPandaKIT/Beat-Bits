@@ -1,3 +1,8 @@
+/**
+ * VisualizerContainer.jsx - Manages 20 audio visualizers
+ * Merges music player + drum machine audio into a single analyser,
+ * renders only the active visualizer via component lookup map.
+ */
 import React, { useState, useEffect } from 'react';
 import './VisualizerContainer.css';
 
@@ -23,7 +28,7 @@ import NeuralNetVisualizer from './NeuralNetVisualizer';
 import ExpandingRingsVisualizer from './ExpandingRingsVisualizer';
 import CometShowerVisualizer from './CometShowerVisualizer';
 
-// Visualizer component map for efficient rendering (only active one renders)
+// Component lookup map — only the active visualizer renders
 const VISUALIZER_COMPONENTS = {
   bars: BarVisualizer,
   circle: CircleVisualizer,
@@ -50,10 +55,10 @@ const VISUALIZER_COMPONENTS = {
 // Main visualizers shown as buttons
 const MAIN_VISUALIZERS = ['bars', 'circle', 'waveform', 'matrix', 'blocks', 'attractor'];
 
-// Other visualizers in dropdown
+// Remaining visualizers shown in dropdown menu
 const DROPDOWN_VISUALIZERS = ['neon', 'pulse', 'wormhole', 'particles', 'scope', 'circwave', 'sun', 'voronoi', 'fractal', 'flow', 'ink', 'neural', 'rings', 'comet'];
 
-// Custom display names for visualizers
+// Display name overrides (defaults to uppercase key)
 const VISUALIZER_NAMES = {
   'neon': 'GRID',
   'circwave': 'CIRCWAVE',
@@ -68,7 +73,7 @@ const VisualizerContainer = ({ analyser, drumAnalyser }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeAnalyser, setActiveAnalyser] = useState(null);
   
-  // Create a merged analyser that combines data from both sources
+  // Merge music + drum analysers by taking the louder value per bin
   useEffect(() => {
     if (!analyser && !drumAnalyser) {
       setActiveAnalyser(null);
@@ -92,18 +97,16 @@ const VisualizerContainer = ({ analyser, drumAnalyser }) => {
         }
       },
       getByteTimeDomainData: (dataArray) => {
-        // Merge time domain data from both sources
+        // Merge by taking the value with greater deviation from center (128)
         const tempArray1 = analyser ? new Uint8Array(analyser.fftSize || 256) : null;
         const tempArray2 = drumAnalyser ? new Uint8Array(drumAnalyser.fftSize || 256) : null;
         
         if (tempArray1) analyser.getByteTimeDomainData(tempArray1);
         if (tempArray2) drumAnalyser.getByteTimeDomainData(tempArray2);
         
-        // Merge by taking the value furthest from center (128)
         for (let i = 0; i < dataArray.length; i++) {
           const val1 = tempArray1 ? tempArray1[i] : 128;
           const val2 = tempArray2 ? tempArray2[i] : 128;
-          // Take whichever deviates more from center (128)
           const dev1 = Math.abs(val1 - 128);
           const dev2 = Math.abs(val2 - 128);
           dataArray[i] = dev1 > dev2 ? val1 : val2;
@@ -114,7 +117,7 @@ const VisualizerContainer = ({ analyser, drumAnalyser }) => {
     setActiveAnalyser(mergedAnalyser);
   }, [analyser, drumAnalyser]);
 
-  // Only render the active visualizer component
+  // Resolve active visualizer component
   const VisualizerComponent = VISUALIZER_COMPONENTS[visualizerType];
 
   return (

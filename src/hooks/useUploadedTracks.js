@@ -1,3 +1,7 @@
+/**
+ * useUploadedTracks.js - Local file upload handler
+ * Reads audio files via FileReader, stores as data URLs in state.
+ */
 import { useState } from 'react';
 
 export const useUploadedTracks = () => {

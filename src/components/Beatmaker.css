@@ -86,6 +86,18 @@
   margin-left: auto;
 }
 
+.step-dropdown-label {
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-right: 8px;
+}
+
+.step-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
 .step-dropdown-button {
   font-size: 12px;
   font-weight: bold;
@@ -192,4 +204,84 @@
     min-height: 44px;
     touch-action: manipulation;
   }
+}
+
+/* ===== BPM Controls ===== */
+.bpm-label {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.bpm-slider {
+  width: 120px;
+}
+
+.bpm-value {
+  font-size: 14px;
+  font-weight: bold;
+  min-width: 45px;
+}
+
+/* ===== Step Number Headers ===== */
+.track-header {
+  background-color: #212529;
+  color: #92cc41;
+}
+
+.step-number {
+  background-color: #cecece;
+  color: #333;
+  font-size: 10px;
+}
+
+.step-number-accent {
+  background-color: #92cc41;
+  color: #000;
+}
+
+/* ===== Pattern Save Row ===== */
+.pattern-save-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.pattern-name-input {
+  flex: 1;
+  min-width: 200px;
+  font-size: 12px;
+  margin: 0;
+}
+
+.pattern-save-btn.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== Saved Pattern Cards ===== */
+.patterns-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pattern-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0px #000;
+  border-radius: 4px;
+}
+
+.pattern-card-name {
+  flex: 1;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.pattern-card-btn {
+  font-size: 10px;
 }

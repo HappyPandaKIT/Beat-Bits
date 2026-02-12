@@ -1,9 +1,13 @@
+/**
+ * DrumMachine.jsx – Interactive drum pad with synthesized sounds.
+ * Initializes a shared AudioContext used by both DrumMachine and Beatmaker.
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import './DrumMachine.css';
 import { SOUND_FUNCTIONS, PADS } from '../audio/drumSounds';
 
-// --- STYLING (Styled Components für Layout + NES.css Integration) ---
+// --- Styled Components ---
 const MachineContainer = styled.div`
   margin-top: 2rem;
   padding: 1rem;
@@ -70,44 +74,38 @@ const DrumMachine = ({ onAudioContextReady, isActive = true, sharedVolume = 0.8,
   const volume = sharedVolume;
   const setVolume = onVolumeChange || (() => {});
   
-  // Refs für Audio Context und Buffer-Speicher
+  // Audio refs
   const audioCtxRef = useRef(null);
-  const buffersRef = useRef({}); // Speichert die geladenen Audiodaten
-  const gainNodeRef = useRef(null); // Speichert den Gain Node für Volume Control
-  const analyserRef = useRef(null); // Analyser node for visualizers
+  const buffersRef = useRef({});
+  const gainNodeRef = useRef(null);
+  const analyserRef = useRef(null);
 
-  // 1. Audio Context Initialisieren und Sounds laden
+  // Initialize AudioContext, analyser, gain node, and load sound buffers
   useEffect(() => {
     const initAudio = async () => {
-      // Cross-Browser Support
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       audioCtxRef.current = new AudioContext();
 
-      // Create analyser node for visualizers
       analyserRef.current = audioCtxRef.current.createAnalyser();
       analyserRef.current.fftSize = 256;
       analyserRef.current.smoothingTimeConstant = 0.8;
 
-      // Create master gain node for volume control
       gainNodeRef.current = audioCtxRef.current.createGain();
       gainNodeRef.current.gain.value = volume;
       
-      // Connect: gain -> analyser -> destination
+      // Audio chain: gain -> analyser -> speakers
       gainNodeRef.current.connect(analyserRef.current);
       analyserRef.current.connect(audioCtxRef.current.destination);
 
-      // Sounds laden und decodieren (Asynchron)
+      // Pre-load sample buffers (fallback to synthesis if missing)
       const loadPromises = PADS.map(async (pad) => {
         try {
           const response = await fetch(pad.url);
           if (!response.ok) throw new Error(`Failed to load ${pad.id}`);
-          
           const arrayBuffer = await response.arrayBuffer();
-          // DecodeAudioData ist Callback-basiert in älteren Browsern, Promise in neuen
-          const audioBuffer = await audioCtxRef.current.decodeAudioData(arrayBuffer);
-          buffersRef.current[pad.id] = audioBuffer;
+          buffersRef.current[pad.id] = await audioCtxRef.current.decodeAudioData(arrayBuffer);
         } catch (error) {
-          console.warn(`Could not load ${pad.id} - use local files in /public/drums/`);
+          console.warn(`Could not load ${pad.id} sample, using synthesis`);
         }
       });
 
@@ -116,30 +114,21 @@ const DrumMachine = ({ onAudioContextReady, isActive = true, sharedVolume = 0.8,
     };
 
     initAudio();
-
-    // Cleanup (Context schließen wenn Komponente unmountet)
-    // Don't close the context as it's shared with Beatmaker
-    return () => {
-      // Keep audio context alive for Beatmaker
-    };
+    // AudioContext is kept alive for Beatmaker (no cleanup)
   }, []);
 
-  // Play sound using lookup table from drumSounds.js
+  // Trigger a drum sound by pad ID
   const playSound = useCallback((padId) => {
     if (!audioCtxRef.current || !gainNodeRef.current) return;
 
-    // Context resume (wichtig für Chrome Autoplay Policy)
+    // Resume suspended context (Chrome autoplay policy)
     if (audioCtxRef.current.state === 'suspended') {
       audioCtxRef.current.resume();
     }
 
-    const ctx = audioCtxRef.current;
-    const now = ctx.currentTime;
-    
-    // Use lookup table instead of switch statement
     const soundFn = SOUND_FUNCTIONS[padId];
     if (soundFn) {
-      soundFn(ctx, now, gainNodeRef.current);
+      soundFn(audioCtxRef.current, audioCtxRef.current.currentTime, gainNodeRef.current);
     }
 
     setDisplay(`HIT: ${padId}`);
@@ -147,13 +136,14 @@ const DrumMachine = ({ onAudioContextReady, isActive = true, sharedVolume = 0.8,
     setTimeout(() => setActivePad(null), 100);
   }, []);
 
+  // Sync gain node with volume prop
   useEffect(() => {
     if (gainNodeRef.current) {
       gainNodeRef.current.gain.value = volume;
     }
   }, [volume]);
 
-  // Notify parent component when audio context and functions are ready
+  // Share audio resources with parent (for Beatmaker)
   useEffect(() => {
     if (audioCtxRef.current && analyserRef.current && onAudioContextReady) {
       const setVolumeFunc = (newVolume) => {
@@ -166,8 +156,9 @@ const DrumMachine = ({ onAudioContextReady, isActive = true, sharedVolume = 0.8,
     }
   }, [onAudioContextReady, playSound]);
 
+  // Keyboard input: map key presses to drum pads
   useEffect(() => {
-    if (!isActive) return; // Don't listen to keys when not active
+    if (!isActive) return;
     
     const handleKeyDown = (event) => {
       const key = event.key.toUpperCase();

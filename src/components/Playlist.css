@@ -103,6 +103,7 @@
   border: 2px solid #000;
   margin-bottom: 0.5rem;
   transition: all 0.2s;
+  cursor: pointer;
 }
 
 .playlist-item:hover {
@@ -128,6 +129,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
   flex-shrink: 0;
   transition: all 0.2s;
 }
@@ -290,4 +292,9 @@
     min-height: 44px;
     touch-action: manipulation;
   }
+}
+
+.playlist-file-input {
+  display: none;
+}
 }

@@ -1,3 +1,8 @@
+/**
+ * Beatmaker.jsx - Step sequencer with 16/32/64 step grid
+ * Supports play/pause/stop, pattern save/load (localStorage), random generation,
+ * and shared audio context with DrumMachine for live playback.
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -84,13 +89,12 @@ const SequencerGrid = styled.div`
 
 const GridTable = styled.div`
   display: grid;
-  grid-template-columns: 100px repeat(16, 1fr);
+  grid-template-columns: 100px repeat(16, 32px);
   gap: 2px;
-  min-width: 850px;
+  width: fit-content;
 
   @media (max-width: 768px) {
-    grid-template-columns: 70px repeat(16, 1fr);
-    min-width: 650px;
+    grid-template-columns: 70px repeat(16, 27px);
   }
 `;
 
@@ -114,25 +118,17 @@ const TrackLabel = styled.div`
 
 const StepCell = styled.div`
   background-color: ${props => props.active ? '#92cc41' : props.highlighted ? '#555' : '#333'};
-  border: 2px solid ${props => props.active ? '#76c442' : '#000'};
+  border: 2px solid #000;
   cursor: pointer;
   transition: background-color 0.05s;
-  aspect-ratio: 1;
-  min-width: 30px;
-  min-height: 30px;
+  box-sizing: border-box;
 
   &:hover {
     background-color: ${props => props.active ? '#76c442' : '#666'};
   }
 
   &.playing {
-    border-color: #ff006e;
     box-shadow: inset 0 0 10px rgba(255, 0, 110, 0.5);
-  }
-
-  @media (max-width: 768px) {
-    min-width: 25px;
-    min-height: 25px;
   }
 `;
 
@@ -184,17 +180,12 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
   const nextStepTimeRef = useRef(0);
   const audioCtxRef = useRef(null);
 
-  // Store audioCtx reference and sync volume from DrumMachine
+  // Keep audioCtx ref in sync with prop
   useEffect(() => {
     audioCtxRef.current = audioCtx;
-    // Get current volume from DrumMachine's gain node if available
-    if (audioCtx && audioCtx.destination) {
-      // The gain node is already set by DrumMachine, so we read its current value
-      // This happens through the setVolume callback passed from parent
-    }
   }, [audioCtx]);
 
-  // Handle step count change
+  // Resize pattern grid, preserving existing step data
   const changeStepCount = useCallback((newSteps) => {
     setSteps(newSteps);
     setCurrentStep(0);
@@ -210,8 +201,8 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
     });
   }, []);
 
-  // Calculate step interval based on BPM (16th notes)
-  const stepInterval = (60 / bpm / 4) * 1000; // in milliseconds
+  // 16th note interval in ms
+  const stepInterval = (60 / bpm / 4) * 1000;
 
   // Toggle step on/off
   const toggleStep = useCallback((track, step) => {
@@ -242,19 +233,16 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
     });
   }, [currentStep, pattern, playSound]);
 
-  // Sequencer loop with precise timing
+  // Sequencer loop — uses requestAnimationFrame for precise timing
   useEffect(() => {
     if (!isPlaying) return;
 
-    // Initialize timing
     if (!nextStepTimeRef.current) {
       nextStepTimeRef.current = Date.now();
     }
 
     const scheduleStep = () => {
       const now = Date.now();
-      
-      // If we're past the next step time, advance
       if (now >= nextStepTimeRef.current) {
         playCurrentStep();
         setCurrentStep(prev => (prev + 1) % steps);
@@ -418,8 +406,8 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
         </button>
 
         <div className="step-dropdown-container">
-          <label style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', marginRight: '8px' }}>Steps:</label>
-          <div style={{ position: 'relative', display: 'inline-block' }}>
+          <label className="step-dropdown-label">Steps:</label>
+          <div className="step-dropdown-wrapper">
             <button
               type="button"
               className="step-dropdown-button"
@@ -448,31 +436,28 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
         </div>
 
         <BPMControl>
-          <label style={{ fontSize: '12px', fontWeight: 'bold' }}>BPM:</label>
+          <label className="bpm-label">BPM:</label>
           <input
             type="range"
             min="60"
             max="200"
             value={bpm}
             onChange={(e) => setBpm(parseInt(e.target.value))}
-            style={{ width: '120px', '--range-progress': `${((bpm - 60) / (200 - 60)) * 100}%` }}
+            className="bpm-slider"
+            style={{ '--range-progress': `${((bpm - 60) / (200 - 60)) * 100}%` }}
           />
-          <span style={{ fontSize: '14px', fontWeight: 'bold', minWidth: '45px' }}>{bpm}</span>
+          <span className="bpm-value">{bpm}</span>
         </BPMControl>
       </TransportControls>
 
       <SequencerGrid>
-        <GridTable style={{ gridTemplateColumns: `100px repeat(${steps}, 1fr)`, minWidth: `${100 + steps * 34}px` }}>
+        <GridTable style={{ gridTemplateColumns: `100px repeat(${steps}, 32px)` }}>
           {/* Header - Step numbers */}
-          <TrackLabel style={{ backgroundColor: '#212529', color: '#92cc41' }}>TRACK</TrackLabel>
+          <TrackLabel className="track-header">TRACK</TrackLabel>
           {Array.from({ length: steps }, (_, i) => (
             <TrackLabel 
               key={`step-${i}`}
-              style={{ 
-                backgroundColor: i % 4 === 0 ? '#92cc41' : '#cecece',
-                color: i % 4 === 0 ? '#000' : '#333',
-                fontSize: '10px'
-              }}
+              className={`step-number ${i % 4 === 0 ? 'step-number-accent' : ''}`}
             >
               {i + 1}
             </TrackLabel>
@@ -497,37 +482,32 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
       </SequencerGrid>
 
       <PatternControls>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch', flexWrap: 'wrap' }}>
+        <div className="pattern-save-row">
           <input
             type="text"
-            className="nes-input"
+            className="nes-input pattern-name-input"
             placeholder="Please give me a name..."
             value={patternName}
             onChange={(e) => setPatternName(e.target.value)}
-            style={{ flex: '1', minWidth: '200px', fontSize: '12px', margin: 0 }}
           />
           <button 
-            className="nes-btn is-success"
+            className={`nes-btn is-success pattern-save-btn ${!patternName.trim() ? 'is-disabled' : ''}`}
             onClick={savePattern}
             disabled={!patternName.trim()}
             data-tooltip="Save Beat"
-            style={{ 
-              opacity: patternName.trim() ? 1 : 0.5,
-              cursor: patternName.trim() ? 'pointer' : 'not-allowed'
-            }}
           >
             <span className="btn-icon"><SaveAltIcon /></span>
           </button>
         </div>
       </PatternControls>
 
+      {/* Saved patterns with gradient color cycling */}
       {savedPatterns.length > 0 && (
         <div className="saved-patterns">
           <div className="beat-collection-title">BEAT COLLECTION</div>
           <div className="patterns-scroll-container">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div className="patterns-list">
             {savedPatterns.map((saved, index) => {
-              // Create appealing color combinations for each pattern
               const colors = [
                 { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', text: '#fff' },
                 { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', text: '#fff' },
@@ -543,30 +523,20 @@ const Beatmaker = React.forwardRef(({ audioCtx, playSound, setVolume, sharedVolu
               return (
                 <div 
                   key={saved.id}
-                  style={{ 
-                    display: 'flex', 
-                    gap: '10px', 
-                    alignItems: 'center',
-                    background: colorScheme.bg,
-                    padding: '10px',
-                    border: '3px solid #000',
-                    boxShadow: '4px 4px 0px #000',
-                    borderRadius: '4px'
-                  }}
+                  className="pattern-card"
+                  style={{ background: colorScheme.bg }}
                 >
-                  <span style={{ flex: 1, fontSize: '12px', fontWeight: 'bold', color: colorScheme.text }}>
+                  <span className="pattern-card-name" style={{ color: colorScheme.text }}>
                     {saved.name} ({saved.bpm} BPM • {saved.steps || 16} Steps)
                   </span>
                   <button 
-                    className="nes-btn is-primary"
-                    style={{ fontSize: '10px' }}
+                    className="nes-btn is-primary pattern-card-btn"
                     onClick={() => loadPattern(saved)}
                   >
                     LOAD
                   </button>
                   <button 
-                    className="nes-btn is-error"
-                    style={{ fontSize: '10px' }}
+                    className="nes-btn is-error pattern-card-btn"
                     onClick={() => deletePattern(saved.id)}
                   >
                     DEL

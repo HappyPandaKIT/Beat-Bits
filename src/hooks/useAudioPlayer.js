@@ -1,3 +1,8 @@
+/**
+ * useAudioPlayer.js - Music playback hook
+ * Manages AudioContext, Media element, AnalyserNode, playback state,
+ * progress tracking, volume, and keyboard shortcuts (Space, Arrow keys).
+ */
 import { useState, useRef, useEffect } from 'react';
 
 export const useAudioPlayer = () => {
@@ -36,6 +41,7 @@ export const useAudioPlayer = () => {
         setIsPlaying(false);
       };
 
+      // Three duration listeners for cross-browser reliability
       audioRef.current.onloadedmetadata = () => {
         setDuration(audioRef.current.duration);
       };

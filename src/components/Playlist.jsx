@@ -28,7 +28,7 @@ const Playlist = ({ beats, uploadedTracks, currentBeatId, isPlaying, onPlayTrack
           accept="audio/*"
           multiple 
           onChange={onFileUpload}
-          style={{ display: 'none' }}
+          className="playlist-file-input"
         />
       </div>
       <div className="playlist-scroll">
@@ -37,7 +37,6 @@ const Playlist = ({ beats, uploadedTracks, currentBeatId, isPlaying, onPlayTrack
             key={`${track.type}-${track.id}`}
             className={`playlist-item ${currentBeatId === track.id ? 'playlist-item-active' : ''}`}
             onClick={() => onPlayTrack(track)}
-            style={{ cursor: 'pointer' }}
           >
             <div 
               className="playlist-play-icon"
@@ -49,7 +48,6 @@ const Playlist = ({ beats, uploadedTracks, currentBeatId, isPlaying, onPlayTrack
                   onPlayTrack(track);
                 }
               }}
-              style={{ cursor: 'pointer' }}
             >
               {currentBeatId === track.id ? (isPlaying ? <span className="pause-icon"><PauseIcon fontSize="small" /></span> : <PlayArrowIcon fontSize="small" />) : <MusicNoteIcon fontSize="small" />}
             </div>

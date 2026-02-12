@@ -1,3 +1,7 @@
+/**
+ * App.jsx – Root component orchestrating audio playback, drum machine,
+ * beatmaker sequencer, playlist, and visualizer.
+ */
 import './App.css'
 import React, { useState, useCallback } from 'react';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
@@ -11,6 +15,7 @@ import Beatmaker from './components/Beatmaker'
 import PlayerControls from './components/PlayerControls'
 import Playlist from './components/Playlist'
 
+// Default tracks bundled with the app
 const BEATS = [
   { id: 1, title: "Crystal Cave", bpm: 120, author: "cynicmusic", src: `${import.meta.env.BASE_URL}sounds/song18.mp3` },
   { id: 2, title: "High Stakes,Low Chances", bpm: 140, author: "Ove Meela", src: `${import.meta.env.BASE_URL}sounds/HighStakes.mp3` }
@@ -21,24 +26,26 @@ function App() {
   const { uploadedTracks, handleFileUpload, deleteUploadedTrack } = useUploadedTracks();
   const displayError = audioPlayer.error;
   
-  // State for sharing audio context and playSound between DrumMachine and Beatmaker
+  // Shared audio state between DrumMachine and Beatmaker
   const [drumAudioContext, setDrumAudioContext] = useState(null);
   const [drumPlaySound, setDrumPlaySound] = useState(null);
   const [drumSetVolume, setDrumSetVolume] = useState(null);
   const [drumAnalyser, setDrumAnalyser] = useState(null);
-  const [sharedVolume, setSharedVolume] = useState(0.8); // Shared volume state
+  const [sharedVolume, setSharedVolume] = useState(0.8);
   
-  // State for switching between DrumMachine, Beatmaker, and Playlist
-  const [activeMode, setActiveMode] = useState('playlist'); // 'drum', 'beat', or 'playlist'
+  // Active mode: 'playlist' | 'beat' | 'drum'
+  const [activeMode, setActiveMode] = useState('playlist');
   const beatmakerRef = React.useRef(null);
 
+  // Receives audio resources from DrumMachine once initialized
   const handleAudioContextReady = useCallback((audioCtx, playSound, setVolume, analyser) => {
     setDrumAudioContext(audioCtx);
-    setDrumPlaySound(() => playSound); // Wrap in arrow function to store function reference
-    setDrumSetVolume(() => setVolume); // Store the setVolume function
-    setDrumAnalyser(analyser); // Store the analyser node
+    setDrumPlaySound(() => playSound);
+    setDrumSetVolume(() => setVolume);
+    setDrumAnalyser(analyser);
   }, []);
 
+  // Stops playback if the track being deleted is currently playing
   const handlePlayTrackWithDeletion = (trackId) => {
     if (audioPlayer.currentBeat?.id === trackId) {
       audioPlayer.togglePlayPause();

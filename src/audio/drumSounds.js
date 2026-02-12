@@ -1,6 +1,13 @@
-// Drum sound synthesis functions
-// All functions take (ctx, now, gainNode) parameters
+/**
+ * drumSounds.js - Web Audio API drum synthesizer
+ * Each function creates oscillator/noise nodes for a specific drum sound.
+ * All functions share the signature: (ctx, now, gainNode)
+ *   ctx      = AudioContext
+ *   now      = ctx.currentTime (schedule start)
+ *   gainNode = shared GainNode for volume control
+ */
 
+/** Kick drum — sine wave with rapid frequency sweep */
 export const playKick = (ctx, now, gainNode) => {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -17,6 +24,7 @@ export const playKick = (ctx, now, gainNode) => {
   osc.stop(now + 0.6);
 };
 
+/** Snare — bit-crushed noise through highpass filter */
 export const playSnare = (ctx, now, gainNode) => {
   const noise = ctx.createBufferSource();
   const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
@@ -45,6 +53,7 @@ export const playSnare = (ctx, now, gainNode) => {
   noise.stop(now + 0.15);
 };
 
+/** Hi-hat — short noise burst with highpass sweep */
 export const playHiHat = (ctx, now, gainNode) => {
   const noise = ctx.createBufferSource();
   const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
@@ -72,6 +81,7 @@ export const playHiHat = (ctx, now, gainNode) => {
   noise.stop(now + 0.08);
 };
 
+/** Clap — bit-crushed noise, no filter */
 export const playClap = (ctx, now, gainNode) => {
   const noise = ctx.createBufferSource();
   const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.12, ctx.sampleRate);
@@ -95,6 +105,7 @@ export const playClap = (ctx, now, gainNode) => {
   noise.stop(now + 0.12);
 };
 
+/** Tom — triangle wave with frequency drop */
 export const playTom = (ctx, now, gainNode) => {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -111,6 +122,7 @@ export const playTom = (ctx, now, gainNode) => {
   osc.stop(now + 0.12);
 };
 
+/** Cowbell — two detuned square waves */
 export const playCowbell = (ctx, now, gainNode) => {
   const osc1 = ctx.createOscillator();
   const osc2 = ctx.createOscillator();
@@ -135,6 +147,7 @@ export const playCowbell = (ctx, now, gainNode) => {
   osc2.stop(now + 0.25);
 };
 
+/** Blip — very short sine ping */
 export const playBlip = (ctx, now, gainNode) => {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -150,6 +163,7 @@ export const playBlip = (ctx, now, gainNode) => {
   osc.stop(now + 0.05);
 };
 
+/** Perc — square wave with pitch drop */
 export const playPerc = (ctx, now, gainNode) => {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -166,6 +180,7 @@ export const playPerc = (ctx, now, gainNode) => {
   osc.stop(now + 0.1);
 };
 
+/** Sweep — sine wave rising then falling */
 export const playSweep = (ctx, now, gainNode) => {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -183,6 +198,7 @@ export const playSweep = (ctx, now, gainNode) => {
   osc.stop(now + 0.15);
 };
 
+/** Buzz — square wave with LFO frequency modulation */
 export const playBuzz = (ctx, now, gainNode) => {
   const osc = ctx.createOscillator();
   const modOsc = ctx.createOscillator();
@@ -209,6 +225,7 @@ export const playBuzz = (ctx, now, gainNode) => {
   modOsc.stop(now + 0.2);
 };
 
+/** Pluck — triangle wave through bandpass filter */
 export const playPluck = (ctx, now, gainNode) => {
   const osc = ctx.createOscillator();
   const filter = ctx.createBiquadFilter();
@@ -231,6 +248,7 @@ export const playPluck = (ctx, now, gainNode) => {
   osc.stop(now + 0.25);
 };
 
+/** Bass — low square wave with slow decay */
 export const playBass = (ctx, now, gainNode) => {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -247,6 +265,7 @@ export const playBass = (ctx, now, gainNode) => {
   osc.stop(now + 0.3);
 };
 
+/** Chime — three layered harmonics (440/880/1320 Hz) */
 export const playChime = (ctx, now, gainNode) => {
   const frequencies = [440, 880, 1320];
   
@@ -266,6 +285,7 @@ export const playChime = (ctx, now, gainNode) => {
   });
 };
 
+/** Zap — sawtooth with fast downward sweep */
 export const playZap = (ctx, now, gainNode) => {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -282,7 +302,7 @@ export const playZap = (ctx, now, gainNode) => {
   osc.stop(now + 0.1);
 };
 
-// Sound function lookup map for efficient dispatch
+// Name → function lookup for dynamic dispatch
 export const SOUND_FUNCTIONS = {
   Kick: playKick,
   Snare: playSnare,
@@ -300,7 +320,7 @@ export const SOUND_FUNCTIONS = {
   Zap: playZap
 };
 
-// Pad configuration
+// Pad layout: id, keyboard shortcut, original sample URL (unused — sounds are synthesized)
 export const PADS = [
   { id: 'Kick', key: 'Q', url: '/drums/kick.wav' },
   { id: 'Snare', key: 'W', url: '/drums/snare.wav' },
