@@ -185,8 +185,6 @@
   
   .step-dropdown-container {
     margin-left: 0;
-    flex-basis: 100%;
-    order: 5;
     justify-content: flex-start;
   }
   
