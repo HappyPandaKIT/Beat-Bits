@@ -66,10 +66,8 @@ const BPMControl = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-left: auto;
 
   @media (max-width: 768px) {
-    margin-left: 0;
     flex-basis: 100%;
     order: 10;
     justify-content: flex-start;
