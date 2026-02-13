@@ -71,6 +71,7 @@ const BPMControl = styled.div`
   @media (max-width: 768px) {
     margin-left: 0;
     flex-basis: 100%;
+    order: 10;
     justify-content: flex-start;
   }
 `;
