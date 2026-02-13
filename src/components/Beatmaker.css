@@ -186,8 +186,8 @@
   .step-dropdown-container {
     margin-left: 0;
     margin-top: 0.5rem;
-    width: 100%;
-    justify-content: center;
+    width: auto;
+    justify-content: flex-start;
   }
   
   .step-dropdown-button {
