@@ -70,7 +70,7 @@ const BPMControl = styled.div`
 
   @media (max-width: 768px) {
     margin-left: 0;
-    width: auto;
+    flex-basis: 100%;
     justify-content: flex-start;
   }
 `;
