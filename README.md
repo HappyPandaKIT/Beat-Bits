@@ -14,3 +14,18 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Setup Instructions
+
+1. Extract the zip file
+2. Navigate to the project folder
+3. Run: `npm install`
+4. Run: `npm run dev`
+
+## Running the Built Version
+
+The pre-built static files are in the `/dist` folder.
+To test them:
+1. Navigate to the `dist` folder
+2. Run: `npx serve .` or `python -m http.server 8000`
+3. Open the provided localhost URL
